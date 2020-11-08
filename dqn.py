@@ -75,7 +75,8 @@ class DQNAgent:
             batch_size: int = 32,
             max_epsilon: float = 1.0,
             min_epsilon: float = 0.1,
-            gamma: float = 0.99):
+            gamma: float = 0.99,
+            verbose: bool = False):
 
         obs_dim = env.observation_space.shape[0]
         action_dim = env.action_space.n
@@ -88,6 +89,7 @@ class DQNAgent:
         self.epsilon_decay_per_step = epsilon_decay_per_step
         self.target_update = target_update
         self.gamma = gamma
+        self.verbose = verbose
 
         # networks: dqn, dqn_target
         self.dqn = Network(obs_dim, action_dim)
@@ -152,9 +154,10 @@ class DQNAgent:
                 episode += 1
                 state = self.env.reset()
                 scores.append(score)
-                print("Step:", step, "\t Episode:", episode, "\t reward:",
-                      score, "\t Avg reward:", sum(scores)/len(scores))
-                if(episode % 25 == 0):
+                if(self.verbose == True):
+                    print("Step:", step, "\t Episode:", episode, "\t reward:",
+                        score, "\t Avg reward:", sum(scores)/len(scores))
+                if(episode % 25 == 0 and self.verbose):
                     self._plot(scores)
                 score = 0
 
@@ -206,7 +209,7 @@ if __name__ == "__main__":
     # environment
     env = gym.make("CartPole-v0")
 
-    agent = DQNAgent(env)
+    agent = DQNAgent(env, verbose=True)
 
     agent.train(1_000_000)
 
