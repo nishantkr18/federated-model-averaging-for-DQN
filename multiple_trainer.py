@@ -1,19 +1,22 @@
 from dqn import *
 from agent_compiler import combine_agents
 
-def test_agent(env, agent):
-    agent.is_test = True
-    state = env.reset()
-    done = False
-    score = 0
-    while not done:
-        # env.render()
-        action = agent.select_action(state)
-        next_state, reward, done = agent.step(action)
+def test_agent(env, agent, runs = 5):
+    avg_score = []
+    for i in range(runs):
+        agent.is_test = True
+        state = env.reset()
+        done = False
+        score = 0
+        while not done:
+            # env.render()
+            action = agent.select_action(state)
+            next_state, reward, done = agent.step(action)
 
-        state = next_state
-        score += reward
-    print("test score for agent : ", score)
+            state = next_state
+            score += reward
+        avg_score.append(score)
+    print("Avg test score for {} runs: {}".format(runs, sum(avg_score)/len(avg_score)))
 
 if __name__ == "__main__":
     # environment
@@ -31,9 +34,9 @@ if __name__ == "__main__":
         print('Testing agent ', i)
         test_agent(env, agent)
 
-    main_agent = combine_agents(env, agents)
+        main_agent = combine_agents(env, agents)
+        print('Testing main_agent')
+        test_agent(env, main_agent)
 
-    print('Testing main_agent')
-    test_agent(env, main_agent)
 
     env.close()
