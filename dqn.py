@@ -76,7 +76,8 @@ class DQNAgent:
             max_epsilon: float = 1.0,
             min_epsilon: float = 0.1,
             gamma: float = 0.99,
-            verbose: bool = False):
+            verbose: bool = False,
+            network = None):
 
         obs_dim = env.observation_space.shape[0]
         action_dim = env.action_space.n
@@ -94,6 +95,8 @@ class DQNAgent:
         # networks: dqn, dqn_target
         self.dqn = Network(obs_dim, action_dim)
         self.dqn_target = Network(obs_dim, action_dim)
+        if(network != None):
+            self.dqn.load_state_dict(network.state_dict())
         self.dqn_target.load_state_dict(self.dqn.state_dict())
         self.dqn_target.eval()
 
@@ -109,7 +112,7 @@ class DQNAgent:
     def select_action(self, state: np.ndarray) -> np.ndarray:
         """Select an action from the input state."""
         # epsilon greedy policy
-        if self.epsilon > np.random.random():
+        if self.epsilon > np.random.random() and not self.is_test:
             selected_action = self.env.action_space.sample()
         else:
             selected_action = self.dqn(
@@ -211,7 +214,7 @@ if __name__ == "__main__":
 
     agent = DQNAgent(env, verbose=True)
 
-    agent.train(1_000_000)
+    agent.train(10_000)
 
     ### Testing agent ###
     agent.is_test = True

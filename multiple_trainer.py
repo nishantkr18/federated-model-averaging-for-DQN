@@ -1,5 +1,5 @@
 from dqn import *
-from agent_compiler import combine_agents
+from agent_compiler import combine_agents, distribute_agents
 
 def test_agent(env, agent, runs = 5):
     avg_score = []
@@ -22,21 +22,21 @@ if __name__ == "__main__":
     # environment
     env = gym.make("CartPole-v0")
 
-    NO_OF_TRAINERS = 50
+    NO_OF_TRAINERS = 2
+    main_agent = DQNAgent(env)
 
-    agents = [DQNAgent(env) for i in range(NO_OF_TRAINERS)]
+    agents = [DQNAgent(env, network=main_agent.dqn) for i in range(NO_OF_TRAINERS)]
 
-    for (i, agent) in enumerate(agents):
-        # training loop
-        agent.train(2000)
+    for runs in range(100):
+        for (i, agent) in enumerate(agents):
+            # training each agent serially (needs to be parallelized)
+            agent.train(210)
 
-        # Testing
-        print('Testing agent ', i)
-        test_agent(env, agent)
-
-        main_agent = combine_agents(env, agents)
+        main_agent = combine_agents(main_agent, agents)
         print('Testing main_agent')
+        test_agent(env, agent)
         test_agent(env, main_agent)
 
+        agents = distribute_agents(main_agent, agents)
 
     env.close()
