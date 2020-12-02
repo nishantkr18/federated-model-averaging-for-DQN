@@ -23,3 +23,18 @@ def distribute_agents(main_agent, agents):
             agent_param.data.copy_(main_agent_param)
     return agents
 
+def combine_agents_reward_based(main_agent, agents, scores):
+    # import pdb
+    # pdb.set_trace()
+    total_reward=sum(scores)
+
+    # parameters=main_agent.dqn.parameters()*0
+    
+    for i in range(len(agents)):
+        for main_param, agent_param in zip(main_agent.dqn.parameters(), agents[i].dqn.parameters()):
+            if i==0:
+                main_param.data.copy_(agent_param*(scores[i]/total_reward))
+            else:
+                main_param.data.copy_(main_param+agent_param*(scores[i]/total_reward))
+
+    return main_agent
