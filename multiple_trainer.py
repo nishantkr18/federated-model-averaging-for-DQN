@@ -24,7 +24,7 @@ def test_agent(env, agent, runs=5):
 
 
 if __name__ == "__main__":
-    ENV_NAME = "LunarLander-v2"
+    ENV_NAME = "Acrobot-v1"
     # environment
     envs = []
     main_env = gym.make(ENV_NAME)
@@ -40,7 +40,7 @@ if __name__ == "__main__":
               for i in range(NO_OF_TRAINERS)]
     scores_agent = []
     scores_main_agent = []
-    for runs in range(1, 5000):
+    for runs in range(1, 50000000):
         for (i, agent) in enumerate(agents):
             # training each agent serially (needs to be parallelized)
             agent.train(20)
@@ -72,6 +72,6 @@ if __name__ == "__main__":
             plt.legend()
 
             # plt.show()
-            plt.savefig(ENV_NAME+'_'+str(NO_OF_TRAINERS)+'plot.png')
+            plt.savefig('plots/'+ENV_NAME+'_'+str(NO_OF_TRAINERS)+'plot.png')
             plt.close()
 
