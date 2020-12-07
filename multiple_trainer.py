@@ -21,16 +21,18 @@ def test_agent(env, agent, runs = 5):
 if __name__ == "__main__":
     # environment
     env = gym.make("CartPole-v0")
-    main_agent = DQNAgent(env)
 
-    NO_OF_TRAINERS = 10
+    NO_OF_TRAINERS = 50
 
-    agents = [DQNAgent(env, network=main_agent.dqn) for i in range(NO_OF_TRAINERS)]
+    agents = [DQNAgent(env) for i in range(NO_OF_TRAINERS)]
 
-    for run in range(100):
-        for (i, agent) in enumerate(agents):
-            # training 
-            agent.train(250)
+    for (i, agent) in enumerate(agents):
+        # training loop
+        agent.train(2000)
+
+        # Testing
+        print('Testing agent ', i)
+        test_agent(env, agent)
 
         main_agent = combine_agents(env, agents)
         print('Testing main_agent')
