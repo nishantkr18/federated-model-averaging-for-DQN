@@ -112,6 +112,7 @@ class DQNAgent:
         self.state = self.env.reset()
 
         self.update_cnt = 0
+        self.step_cnt = 1
         self.scores = []
         self.score = 0
         self.episode = 0
@@ -147,7 +148,8 @@ class DQNAgent:
 
         self.is_test = False
 
-        for step in range(1, steps + 1):
+        for _ in range(steps):
+            self.step_cnt += 1
             action = self.select_action(self.state)
             next_state, reward, done = self.step(self.env, action)
 
@@ -160,9 +162,9 @@ class DQNAgent:
                 self.state = self.env.reset()
                 self.scores.append(self.score)
                 if(self.verbose == True):
-                    print("Step:", step, "\t Episode:", self.episode, "\t reward:",
+                    print("Step:", self.step_cnt, "\t Episode:", self.episode, "\t reward:",
                         self.score, "\t Avg reward:", sum(self.scores)/len(self.scores))
-                if(self.episode % 25 == 0 and self.verbose):
+                if(self.episode % 15 == 0 and self.verbose):
                     self._plot(self.scores)
                 self.score = 0
 
@@ -201,7 +203,7 @@ class DQNAgent:
     def _plot(self, scores: np.ndarray):
         plt.figure(figsize=[12, 9])
         plt.subplot(1, 1, 1)
-        plt.title(f"scores per self.episode")
+        plt.title("scores in each episode")
         plt.plot(scores)
         plt.grid()
 
@@ -212,12 +214,12 @@ class DQNAgent:
 
 if __name__ == "__main__":
     # environment
-    env = gym.make("CartPole-v0")
+    env = gym.make("Acrobot-v1")
 
     agent = DQNAgent(env, verbose=True)
 
-    for i in range(1000):
-        agent.train(10)
+    for i in range(100000):
+        agent.train(20)
 
     ### Testing agent ###
     agent.is_test = True
