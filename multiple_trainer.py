@@ -18,56 +18,65 @@ def test_agent(env, agent, runs=5):
             state = next_state
             score += reward
         avg_score.append(score)
-    print("Avg test score for {} runs: {}".format(
-        runs, sum(avg_score)/len(avg_score)))
+    # print("Avg test score for {} runs: {}".format(
+    #     runs, sum(avg_score)/len(avg_score)))
     return sum(avg_score)/len(avg_score)
+
+def make_new_env(ENV_NAME, seed):
+    env = gym.make(ENV_NAME)
+    env.seed(seed)
+    return env
 
 
 if __name__ == "__main__":
     ENV_NAME = "Acrobot-v1"
+    torch.manual_seed(0)
+    np.random.seed(0)
+
     # environment
     envs = []
-    main_env = gym.make(ENV_NAME)
-    test_env = gym.make(ENV_NAME)
+    global_env = make_new_env(ENV_NAME, 0)
+    test_env = make_new_env(ENV_NAME, 0)
+    single_agent_env = make_new_env(ENV_NAME, 0)
 
     NO_OF_TRAINERS = 3
+    FREQUENCY_OF_UPDATE = 50
     for i in range(NO_OF_TRAINERS):
-        envs.append(gym.make(ENV_NAME))
+        envs.append(make_new_env(ENV_NAME, 0))
 
-    main_agent = DQNAgent(main_env)
+    global_agent = DQNAgent(global_env)
+    single_agent = DQNAgent(single_agent_env, network=global_agent.dqn)
 
-    agents = [DQNAgent(envs[i], network=main_agent.dqn)
+    agents = [DQNAgent(envs[i], network=global_agent.dqn)
               for i in range(NO_OF_TRAINERS)]
-    scores_agent = []
-    scores_main_agent = []
+    scores_single_agent = []
+    scores_global_agent = []
+    steps = []
     for runs in range(1, 50000000):
         for (i, agent) in enumerate(agents):
             # training each agent serially (needs to be parallelized)
-            agent.train(20)
+            agent.train(FREQUENCY_OF_UPDATE)
             # scores.append(test_agent(test_env, agent))
-            if(i == 0):
-                scores_agent.append(test_agent(test_env, agent))
+        single_agent.train(FREQUENCY_OF_UPDATE)
 
-        # main_agent = combine_agents_reward_based(main_agent, agents, scores)
-        main_agent = combine_agents(main_agent, agents)
-        print('Testing main_agent')
+        # global_agent = combine_agents_reward_based(global_agent, agents, scores)
+        global_agent = combine_agents(global_agent, agents)
 
-        scores_main_agent.append(test_agent(main_env, main_agent))
-
-        # agents = distribute_agents(main_agent, agents)
+        agents = distribute_agents(global_agent, agents)
 
 
         if(runs%10==0):
+            scores_global_agent.append(test_agent(global_env, global_agent))
+            scores_single_agent.append(test_agent(single_agent_env, single_agent))
+            steps.append(single_agent.step_cnt)
             ###############PLOT##################
             plt.figure(figsize=[12, 9])
             plt.subplot(1, 1, 1)
             plt.title(ENV_NAME)
-            plt.xlabel('Instances of Training')
-            plt.ylabel('Reward')
-            plt.plot(scores_agent, color='green', marker='o',
-                    markerfacecolor='blue', label='single_agent')
-            plt.plot(scores_main_agent, color='red', marker='o',
-                    markerfacecolor='blue', label='aggregated_agent({})'.format(NO_OF_TRAINERS))
+            plt.xlabel('Steps:')
+            plt.ylabel('Avg Reward after 5 runs')
+            plt.plot(steps, scores_single_agent, color='green', label='single_agent')
+            plt.plot(steps, scores_global_agent, color='red', label='aggregated_agent({})'.format(NO_OF_TRAINERS))
             plt.grid()
             plt.legend()
 

@@ -6,12 +6,13 @@ def combine_agents(main_agent, agents):
             if(i == 0):
                 main_param.data.copy_(agent_param)
             else:
-                main_param.data.copy_(main_param * (i/i+1) + agent_param * (1/i+1))
+                main_param.data.copy_(main_param * (i/(i+1)) + agent_param * (1/(i+1)))
+        
         for main_param, agent_param in zip(main_agent.dqn_target.parameters(), agents[i].dqn_target.parameters()):
             if(i == 0):
                 main_param.data.copy_(agent_param)
             else:
-                main_param.data.copy_(main_param * (i/i+1) + agent_param * (1/i+1))
+                main_param.data.copy_(main_param * (i/(i+1)) + agent_param * (1/(i+1)))
 
     return main_agent
 

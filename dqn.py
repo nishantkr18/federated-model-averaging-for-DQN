@@ -114,6 +114,7 @@ class DQNAgent:
         self.update_cnt = 0
         self.step_cnt = 1
         self.scores = []
+        self.steps_list = []
         self.score = 0
         self.episode = 0
 
@@ -161,11 +162,12 @@ class DQNAgent:
                 self.episode += 1
                 self.state = self.env.reset()
                 self.scores.append(self.score)
+                self.steps_list.append(self.step_cnt)
                 if(self.verbose == True):
                     print("Step:", self.step_cnt, "\t Episode:", self.episode, "\t reward:",
                         self.score, "\t Avg reward:", sum(self.scores)/len(self.scores))
                 if(self.episode % 15 == 0 and self.verbose):
-                    self._plot(self.scores)
+                    self._plot()
                 self.score = 0
 
             # if training is ready
@@ -200,11 +202,13 @@ class DQNAgent:
                     self.dqn_target.load_state_dict(self.dqn.state_dict())
         self.env.close()
 
-    def _plot(self, scores: np.ndarray):
+    def _plot(self):
         plt.figure(figsize=[12, 9])
         plt.subplot(1, 1, 1)
-        plt.title("scores in each episode")
-        plt.plot(scores)
+        plt.title("scores")
+        plt.xlabel('Steps:')
+        plt.ylabel('Total Reward for episode:')
+        plt.plot(self.steps_list, self.scores)
         plt.grid()
 
         # plt.show()
