@@ -76,7 +76,8 @@ class DQNAgent:
             max_epsilon: float = 1.0,
             min_epsilon: float = 0.1,
             gamma: float = 0.99,
-            verbose: bool = False):
+            verbose: bool = False,
+            network = None):
 
         obs_dim = env.observation_space.shape[0]
         action_dim = env.action_space.n
@@ -94,6 +95,8 @@ class DQNAgent:
         # networks: dqn, dqn_target
         self.dqn = Network(obs_dim, action_dim)
         self.dqn_target = Network(obs_dim, action_dim)
+        if(network != None):
+            self.dqn.load_state_dict(network.state_dict())
         self.dqn_target.load_state_dict(self.dqn.state_dict())
         self.dqn_target.eval()
 
@@ -106,10 +109,19 @@ class DQNAgent:
         # mode: train / test
         self.is_test = False
 
+        self.state = self.env.reset()
+
+        self.update_cnt = 0
+        self.step_cnt = 1
+        self.scores = []
+        self.steps_list = []
+        self.score = 0
+        self.episode = 0
+
     def select_action(self, state: np.ndarray) -> np.ndarray:
         """Select an action from the input state."""
         # epsilon greedy policy
-        if self.epsilon > np.random.random():
+        if self.epsilon > np.random.random() and not self.is_test:
             selected_action = self.env.action_space.sample()
         else:
             selected_action = self.dqn(
@@ -122,9 +134,9 @@ class DQNAgent:
 
         return selected_action
 
-    def step(self, action: np.ndarray) -> Tuple[np.ndarray, np.float64, bool]:
+    def step(self, using_env, action: np.ndarray) -> Tuple[np.ndarray, np.float64, bool]:
         """Take an action and return the response of the env."""
-        next_state, reward, done, _ = self.env.step(action)
+        next_state, reward, done, _ = using_env.step(action)
 
         if not self.is_test:
             self.transition += [reward, next_state, done]
@@ -134,32 +146,29 @@ class DQNAgent:
 
     def train(self, steps: int):
         """Train the agent."""
+
         self.is_test = False
 
-        state = self.env.reset()
-        update_cnt = 0
-        scores = []
-        score = 0
-        episode = 0
+        for _ in range(steps):
+            self.step_cnt += 1
+            action = self.select_action(self.state)
+            next_state, reward, done = self.step(self.env, action)
 
-        for step in range(1, steps + 1):
-            action = self.select_action(state)
-            next_state, reward, done = self.step(action)
-
-            state = next_state
-            score += reward
+            self.state = next_state
+            self.score += reward
 
             # if episode ends
             if done:
-                episode += 1
-                state = self.env.reset()
-                scores.append(score)
+                self.episode += 1
+                self.state = self.env.reset()
+                self.scores.append(self.score)
+                self.steps_list.append(self.step_cnt)
                 if(self.verbose == True):
-                    print("Step:", step, "\t Episode:", episode, "\t reward:",
-                        score, "\t Avg reward:", sum(scores)/len(scores))
-                if(episode % 25 == 0 and self.verbose):
-                    self._plot(scores)
-                score = 0
+                    print("Step:", self.step_cnt, "\t Episode:", self.episode, "\t reward:",
+                        self.score, "\t Avg reward:", sum(self.scores)/len(self.scores))
+                if(self.episode % 15 == 0 and self.verbose):
+                    self._plot()
+                self.score = 0
 
             # if training is ready
             if self.memory.size >= self.batch_size:
@@ -182,22 +191,24 @@ class DQNAgent:
                 loss.backward()
                 self.optimizer.step()
 
-                update_cnt += 1
+                self.update_cnt += 1
 
                 # linearly decrease epsilon
                 self.epsilon = max(
                     self.min_epsilon, self.epsilon - self.epsilon_decay_per_step)
 
                 # if hard update is needed
-                if update_cnt % self.target_update == 0:
+                if self.update_cnt % self.target_update == 0:
                     self.dqn_target.load_state_dict(self.dqn.state_dict())
         self.env.close()
 
-    def _plot(self, scores: np.ndarray):
+    def _plot(self):
         plt.figure(figsize=[12, 9])
         plt.subplot(1, 1, 1)
-        plt.title(f"scores per episode")
-        plt.plot(scores)
+        plt.title("scores")
+        plt.xlabel('Steps:')
+        plt.ylabel('Total Reward for episode:')
+        plt.plot(self.steps_list, self.scores)
         plt.grid()
 
         # plt.show()
@@ -207,11 +218,12 @@ class DQNAgent:
 
 if __name__ == "__main__":
     # environment
-    env = gym.make("CartPole-v0")
+    env = gym.make("Acrobot-v1")
 
     agent = DQNAgent(env, verbose=True)
 
-    agent.train(1_000_000)
+    for i in range(100000):
+        agent.train(20)
 
     ### Testing agent ###
     agent.is_test = True
