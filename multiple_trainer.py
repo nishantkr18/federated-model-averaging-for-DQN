@@ -29,25 +29,21 @@ def make_new_env(ENV_NAME, seed):
 
 
 if __name__ == "__main__":
-    ENV_NAME = "Acrobot-v1"
+    ENV_NAME = "CartPole-v0"
     torch.manual_seed(0)
     np.random.seed(0)
 
     # environment
-    envs = []
-    global_env = make_new_env(ENV_NAME, 0)
+    env = make_new_env(ENV_NAME, 0)
     test_env = make_new_env(ENV_NAME, 0)
-    single_agent_env = make_new_env(ENV_NAME, 0)
 
     NO_OF_TRAINERS = 3
     FREQUENCY_OF_UPDATE = 50
-    for i in range(NO_OF_TRAINERS):
-        envs.append(make_new_env(ENV_NAME, 0))
 
-    global_agent = DQNAgent(global_env)
-    single_agent = DQNAgent(single_agent_env, network=global_agent.dqn)
+    global_agent = DQNAgent(env)
+    single_agent = DQNAgent(env, network=global_agent.dqn)
 
-    agents = [DQNAgent(envs[i], network=global_agent.dqn)
+    agents = [DQNAgent(env, network=global_agent.dqn)
               for i in range(NO_OF_TRAINERS)]
     scores_single_agent = []
     scores_global_agent = []
@@ -69,8 +65,8 @@ if __name__ == "__main__":
 
 
         if(runs%10==0):
-            scores_global_agent.append(test_agent(global_env, global_agent))
-            scores_single_agent.append(test_agent(single_agent_env, single_agent))
+            scores_global_agent.append(test_agent(test_env, global_agent))
+            scores_single_agent.append(test_agent(test_env, single_agent))
             steps.append(single_agent.step_cnt)
             ###############PLOT##################
             plt.figure(figsize=[12, 9])
