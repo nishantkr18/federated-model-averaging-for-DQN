@@ -53,13 +53,13 @@ if __name__ == "__main__":
         for (i, agent) in enumerate(agents):
             # training each agent serially (needs to be parallelized)
             agent.train(FREQUENCY_OF_UPDATE)
-            # scores.append(test_agent(test_env, agent)) #Cartpole
+            scores.append(test_agent(test_env, agent)) #Cartpole
             # scores.append(501+test_agent(test_env, agent)) #Acrobot
             # scores.append(201+test_agent(test_env, agent)) #Mountain Car
         single_agent.train(FREQUENCY_OF_UPDATE)
 
-        # global_agent = combine_agents_reward_based(global_agent, agents, scores)
-        global_agent = combine_agents(global_agent, agents)
+        global_agent = combine_agents_reward_based(global_agent, agents, scores)
+        # global_agent = combine_agents(global_agent, agents)
         scores=[]
         agents = distribute_agents(global_agent, agents)
 
