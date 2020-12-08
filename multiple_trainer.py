@@ -29,7 +29,7 @@ def make_new_env(ENV_NAME, seed):
 
 
 if __name__ == "__main__":
-    ENV_NAME = "Acrobot-v1"
+    ENV_NAME = "CartPole-v0"
     torch.manual_seed(0)
     np.random.seed(0)
 
@@ -69,9 +69,9 @@ if __name__ == "__main__":
             scores_single_agent.append(test_agent(test_env, single_agent))
             steps.append(single_agent.step_cnt)
 
-            np.savetxt('arrays/scores_global_agent.csv', np.array(scores_global_agent))
-            np.savetxt('arrays/scores_single_agent.csv', np.array(scores_single_agent))
-            np.savetxt('arrays/steps.csv', np.array(steps))
+            np.savetxt('arrays/scores_global_agent_'+ENV_NAME+'.csv', np.array(scores_global_agent))
+            np.savetxt('arrays/scores_single_agent_'+ENV_NAME+'.csv', np.array(scores_single_agent))
+            np.savetxt('arrays/steps_'+ENV_NAME+'.csv', np.array(steps))
             ###############PLOT##################
             plot_graph(scores_global_agent, scores_single_agent, steps, ENV_NAME, NO_OF_TRAINERS, ROLLING=20)
 
