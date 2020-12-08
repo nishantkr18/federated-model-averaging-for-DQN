@@ -31,4 +31,4 @@ if __name__ == "__main__":
     y1 = np.loadtxt('arrays/scores_global_agent_'+ENV_NAME+'.csv')
     y2 = np.loadtxt('arrays/scores_single_agent_'+ENV_NAME+'.csv')
     x1 = np.loadtxt('arrays/steps_'+ENV_NAME+'.csv')
-    plot_graph(y1, y2, x1, ENV_NAME, 3, 10, HOW_MANY_VALUES =100)
+    plot_graph(y1, y2, x1, ENV_NAME, 3, 15, HOW_MANY_VALUES = 500)
