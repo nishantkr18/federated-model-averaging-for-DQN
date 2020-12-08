@@ -2,7 +2,7 @@ from dqn import *
 from agent_compiler import *
 
 
-def test_agent(env, agent, runs=5):
+def test_agent(env, agent, runs=3):
     avg_score = []
     agent.is_test = True
     for i in range(runs):
@@ -29,7 +29,7 @@ def make_new_env(ENV_NAME, seed):
 
 
 if __name__ == "__main__":
-    ENV_NAME = "CartPole-v0"
+    ENV_NAME = "LunarLander-v2"
     torch.manual_seed(0)
     np.random.seed(0)
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     test_env = make_new_env(ENV_NAME, 0)
 
     NO_OF_TRAINERS = 3
-    FREQUENCY_OF_UPDATE = 50
+    FREQUENCY_OF_UPDATE = 30
 
     global_agent = DQNAgent(env)
     single_agent = DQNAgent(env, network=global_agent.dqn)
@@ -54,28 +54,32 @@ if __name__ == "__main__":
             # training each agent serially (needs to be parallelized)
             agent.train(FREQUENCY_OF_UPDATE)
             # scores.append(test_agent(test_env, agent)) #Cartpole
-            scores.append(501+test_agent(test_env, agent)) #Acrobot
+            # scores.append(501+test_agent(test_env, agent)) #Acrobot
             # scores.append(201+test_agent(test_env, agent)) #Mountain Car
         single_agent.train(FREQUENCY_OF_UPDATE)
 
-        global_agent = combine_agents_reward_based(global_agent, agents, scores)
-        # global_agent = combine_agents(global_agent, agents)
+        # global_agent = combine_agents_reward_based(global_agent, agents, scores)
+        global_agent = combine_agents(global_agent, agents)
         scores=[]
         agents = distribute_agents(global_agent, agents)
 
 
-        if(runs%10==0):
+        if(runs%5==0):
             scores_global_agent.append(test_agent(test_env, global_agent))
             scores_single_agent.append(test_agent(test_env, single_agent))
             steps.append(single_agent.step_cnt)
+
+            np.savetxt('arrays/scores_global_agent.csv', np.array(scores_global_agent))
+            np.savetxt('arrays/scores_single_agent.csv', np.array(scores_single_agent))
+            np.savetxt('arrays/steps.csv', np.array(steps))
             ###############PLOT##################
             plt.figure(figsize=[12, 9])
             plt.subplot(1, 1, 1)
             plt.title(ENV_NAME)
             plt.xlabel('Steps:')
-            plt.ylabel('Avg Reward after 5 runs')
-            plt.plot(steps, scores_single_agent, color='green', label='single_agent')
-            plt.plot(steps, scores_global_agent, color='red', label='aggregated_agent({})'.format(NO_OF_TRAINERS))
+            plt.ylabel('Avg Reward after 3 runs')
+            plt.plot(steps, scores_single_agent, color='green', marker='.', label='single_agent')
+            plt.plot(steps, scores_global_agent, color='red', marker = '.', label='aggregated_agent({})'.format(NO_OF_TRAINERS))
             plt.grid()
             plt.legend()
 

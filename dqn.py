@@ -69,7 +69,7 @@ class DQNAgent:
     def __init__(
             self,
             env: gym.Env,
-            memory_size: int = 1000,
+            memory_size: int = 10000,
             epsilon_decay_per_step: float = 1 / 2500,
             target_update: int = 100,
             batch_size: int = 32,
