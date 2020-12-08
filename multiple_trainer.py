@@ -1,6 +1,6 @@
 from dqn import *
 from agent_compiler import *
-
+from plotter import plot_graph
 
 def test_agent(env, agent, runs=3):
     avg_score = []
@@ -29,7 +29,7 @@ def make_new_env(ENV_NAME, seed):
 
 
 if __name__ == "__main__":
-    ENV_NAME = "LunarLander-v2"
+    ENV_NAME = "Acrobot-v1"
     torch.manual_seed(0)
     np.random.seed(0)
 
@@ -73,17 +73,6 @@ if __name__ == "__main__":
             np.savetxt('arrays/scores_single_agent.csv', np.array(scores_single_agent))
             np.savetxt('arrays/steps.csv', np.array(steps))
             ###############PLOT##################
-            plt.figure(figsize=[12, 9])
-            plt.subplot(1, 1, 1)
-            plt.title(ENV_NAME)
-            plt.xlabel('Steps:')
-            plt.ylabel('Avg Reward after 3 runs')
-            plt.plot(steps, scores_single_agent, color='green', marker='.', label='single_agent')
-            plt.plot(steps, scores_global_agent, color='red', marker = '.', label='aggregated_agent({})'.format(NO_OF_TRAINERS))
-            plt.grid()
-            plt.legend()
+            plot_graph(scores_global_agent, scores_single_agent, steps, ENV_NAME, NO_OF_TRAINERS, ROLLING=20)
 
-            # plt.show()
-            plt.savefig('plots/'+ENV_NAME+'_'+str(NO_OF_TRAINERS)+'plot.png')
-            plt.close()
 
